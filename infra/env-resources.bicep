@@ -1,5 +1,5 @@
 
-var abbrs = loadJsonContent('abbreviations.json')
+var abbrs = loadJsonContent('../abbreviations.json')
 
 param appServicePlanName string
 

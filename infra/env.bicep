@@ -17,7 +17,7 @@ param resourceToken string
 param sqlServerOwnerGroupId string
 param sqlServerOwnerGroupName string
 
-var abbrs = loadJsonContent('abbreviations.json')
+var abbrs = loadJsonContent('../abbreviations.json')
 
 targetScope = 'subscription'
 
