@@ -11,15 +11,13 @@ The following bicep templates will roll out:
  
  ## Usage
  
- Log in to the client tenant with
+ Log in to the client tenant with:
  
  `az login --tenant <tenant>`
  
- Set the active subscription with
- 
- `az account set -s <subscription id>`
- 
- `az deployment sub create -f common.bicep -l australiaeast`
+Run the deployment:
+
+ `az deployment sub create -f common.bicep -l australiaeast -s <subscription id>`
  
  Provide a name for the project during the deployment phase.
  
