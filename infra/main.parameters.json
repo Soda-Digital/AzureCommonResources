@@ -11,10 +11,10 @@
     "logAnalyticsWorkspaceResourceId": {
       "value": ""
     },
-    "sqlServerOwnerGroupId": {
+    "azureContributorGroupId": {
       "value": ""
     },
-    "sqlServerOwnerGroupName": {
+    "azureContributorGroupName": {
       "value": ""
     }
   }

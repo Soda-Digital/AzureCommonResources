@@ -17,8 +17,8 @@ param projectName string
 var tags = { 'azd-env-name': name }
 
 param logAnalyticsWorkspaceResourceId string
-param sqlServerOwnerGroupId string
-param sqlServerOwnerGroupName string
+param azureContributorGroupId string
+param azureContributorGroupName string
 
 var abbrs = loadJsonContent('../abbreviations.json')
 
@@ -39,8 +39,8 @@ module environmentResources 'main-resources.bicep' = {
     tags: tags
     projectName: projectName
     logAnalyticsWorkspaceId: logAnalyticsWorkspaceResourceId
-    sqlServerOwnerGroupId: sqlServerOwnerGroupId
-    sqlServerOwnerGroupName: sqlServerOwnerGroupName
+    sqlServerOwnerGroupId: azureContributorGroupId
+    sqlServerOwnerGroupName: azureContributorGroupName
   }
 }
 
