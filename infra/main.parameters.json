@@ -8,7 +8,7 @@
     "projectName": {
       "value": ""
     },
-    "logAnalyticsWorkspaceId": {
+    "logAnalyticsWorkspaceResourceId": {
       "value": ""
     },
     "sqlServerOwnerGroupId": {

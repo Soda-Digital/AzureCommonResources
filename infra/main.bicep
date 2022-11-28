@@ -16,7 +16,7 @@ param projectName string
 
 var tags = { 'azd-env-name': name }
 
-param logAnalyticsWorkspaceId string
+param logAnalyticsWorkspaceResourceId string
 param sqlServerOwnerGroupId string
 param sqlServerOwnerGroupName string
 
@@ -38,7 +38,7 @@ module environmentResources 'main-resources.bicep' = {
     location: resourceGroup.location
     tags: tags
     projectName: projectName
-    logAnalyticsWorkspaceId: logAnalyticsWorkspaceId
+    logAnalyticsWorkspaceId: logAnalyticsWorkspaceResourceId
     sqlServerOwnerGroupId: sqlServerOwnerGroupId
     sqlServerOwnerGroupName: sqlServerOwnerGroupName
   }
