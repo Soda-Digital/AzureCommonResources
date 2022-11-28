@@ -5,20 +5,28 @@ param defaultLocation string = resourceGroup().location
 
 param tenantId string
 
+param appServicePlanSku string = 'P1V2'
+
 var abbrs = loadJsonContent('abbreviations.json')
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: '${abbrs.keyVaultVaults}${name}'
   location: defaultLocation
-
   properties: {
-
     enableRbacAuthorization: true
     sku: {
       family: 'A' 
       name: 'standard'
     }
     tenantId: tenantId
+  }
+
+  resource dataProtectionKey 'keys' = {
+    name: 'dataprotection-key'
+    properties: {
+      keySize: 2048
+      kty: 'RSA'
+    }
   }
 
 }
@@ -35,7 +43,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: '${abbrs.webServerFarms}${name}'
   location: defaultLocation
   sku: {
-    name: 'P1V2' //TODO make this customizable, pass it in as a param
+    name: appServicePlanSku
   }
   properties: {
     reserved: true
@@ -45,7 +53,6 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-03-01-preview' = {
   name: '${abbrs.operationalInsightsWorkspaces}${name}'
   location: defaultLocation
-  //tags: tags
   properties: any({
     retentionInDays: 30
     features: {
@@ -56,4 +63,5 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-03
     }
   })
 }
+
 

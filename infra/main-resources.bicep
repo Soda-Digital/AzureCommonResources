@@ -1,9 +1,8 @@
 
 var abbrs = loadJsonContent('../abbreviations.json')
 
-param appServicePlanName string
+param name string
 
-param resourceToken string
 param location string = resourceGroup().location
 param tags object
 
@@ -12,10 +11,25 @@ param sqlServerOwnerGroupId string
 
 param logAnalyticsWorkspaceId string
 
+param projectName string
+
+
 var dockerValue = 'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest'
+var resourceToken = toLower(uniqueString(subscription().id, name, location))
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
-  name: appServicePlanName
+  name: '${abbrs.webServerFarms}${projectName}'
+  scope: resourceGroup('${abbrs.resourcesResourceGroups}${projectName}-common')
+}
+
+// resource keyvault 'Microsoft.KeyVault/vaults@2022-07-01' existing =  {
+//   name: '${abbrs.keyVaultVaults}${projectName}'
+//   scope: resourceGroup('${abbrs.resourcesResourceGroups}${projectName}-common')
+// }
+
+resource dataProtectionKey 'Microsoft.KeyVault/vaults/keys@2022-07-01' existing =  {
+  name: '${abbrs.keyVaultVaults}${projectName}/dataprotection-key'
+  scope: resourceGroup('${abbrs.resourcesResourceGroups}${projectName}-common')
 }
 
 
@@ -44,7 +58,7 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
     name: 'appsettings'
     properties: {
       DATAPROTECTION_BLOBLOCATION: '${storageAccount.properties.primaryEndpoints.blob}/${storageAccount::dataProtectionKeysContainer.name}'
-      DATAPROTECTION_KEYVAULTLOCATION: 'todo'  //dataprotectionKey.properties.keyUri
+      DATAPROTECTION_KEYVAULTLOCATION: dataProtectionKey.properties.keyUri
       APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
     }
   }
@@ -183,5 +197,38 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   properties: {
     Application_Type: 'web'
     WorkspaceResourceId: logAnalyticsWorkspaceId
+
   }
 }
+
+
+module permissions 'common-permissions.bicep' = {
+  name: 'common-permissions'
+  scope: resourceGroup('${abbrs.resourcesResourceGroups}${projectName}-common')
+  params: {
+    resourceToken: resourceToken
+    name: name
+    projectName: projectName
+  }
+}
+
+
+//ENVIRONMENT SPECIFIC PERMISSIONS
+
+@description('This is the built-in Contributor role. See https://docs.microsoft.com/azure/role-based-access-control/built-in-roles#contributor')
+resource blobcontributorRoleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
+  scope: subscription()
+  name: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe' //https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-blob-data-contributor
+}
+
+resource webaccess 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storageAccount.id, web.id, blobcontributorRoleDefinition.id)
+  scope: storageAccount::dataProtectionKeysContainer::dataProtectionKeys
+  properties: {
+    roleDefinitionId: blobcontributorRoleDefinition.id
+    principalId: web.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+

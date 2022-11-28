@@ -7,13 +7,16 @@ param name string
 
 @minLength(1)
 @description('Primary location for all resources')
-param location string
+param location string = 'australiaeast'
+
+
+@description('What is the name of the project')
+param projectName string
+
 
 var tags = { 'azd-env-name': name }
 
-param appServicePlanName string
 param logAnalyticsWorkspaceId string
-param resourceToken string
 param sqlServerOwnerGroupId string
 param sqlServerOwnerGroupName string
 
@@ -27,18 +30,20 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   tags: tags
 }
 
-module environmentResources 'env-resources.bicep' = {
-  name: 'env'
+module environmentResources 'main-resources.bicep' = {
+  name: 'main-resources'
   scope: resourceGroup
   params: {
+    name: name
     location: resourceGroup.location
     tags: tags
-    appServicePlanName: appServicePlanName
+    projectName: projectName
     logAnalyticsWorkspaceId: logAnalyticsWorkspaceId
-    resourceToken: resourceToken
     sqlServerOwnerGroupId: sqlServerOwnerGroupId
     sqlServerOwnerGroupName: sqlServerOwnerGroupName
   }
 }
+
+
 
 
