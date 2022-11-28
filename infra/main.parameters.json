@@ -6,16 +6,16 @@
       "value": "${AZURE_ENV_NAME}"
     },
     "projectName": {
-      "value": "chadtest"
+      "value": ""
     },
     "logAnalyticsWorkspaceId": {
-      "value": "/subscriptions/1c12ea1e-0923-4777-8e03-65e8eaaf52f9/resourceGroups/rg-chadtest-common/providers/Microsoft.OperationalInsights/workspaces/log-chadtest"
+      "value": ""
     },
     "sqlServerOwnerGroupId": {
-      "value": "4c20a97a-a661-4973-b3e1-d11abf11cb53"
+      "value": ""
     },
     "sqlServerOwnerGroupName": {
-      "value": "AdminAgents"
+      "value": ""
     }
   }
 }
