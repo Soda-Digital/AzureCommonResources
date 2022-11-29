@@ -22,10 +22,6 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
   scope: resourceGroup('${abbrs.resourcesResourceGroups}${projectName}-common')
 }
 
-// resource keyvault 'Microsoft.KeyVault/vaults@2022-07-01' existing =  {
-//   name: '${abbrs.keyVaultVaults}${projectName}'
-//   scope: resourceGroup('${abbrs.resourcesResourceGroups}${projectName}-common')
-// }
 
 resource dataProtectionKey 'Microsoft.KeyVault/vaults/keys@2022-07-01' existing =  {
   name: '${abbrs.keyVaultVaults}${projectName}/dataprotection-key'
