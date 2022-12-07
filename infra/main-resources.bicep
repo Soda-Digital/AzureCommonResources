@@ -151,7 +151,7 @@ resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
     location: location
     tags: union(tags, { 'azd-service-name': 'database' })
     sku: {
-      name: 'Basic'
+      name: 'Basic' //TODO make this customizeable, default to serverless if non-prod
       tier: 'Basic'
       capacity: 5
     }
@@ -179,7 +179,6 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {
     resource dataProtectionKeys 'containers' = {
       name: 'dataprotectionkeys'
     }
-
   }
 }
 
@@ -193,7 +192,6 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   properties: {
     Application_Type: 'web'
     WorkspaceResourceId: logAnalyticsWorkspaceId
-
   }
 }
 
