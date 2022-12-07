@@ -7,19 +7,40 @@ param tenantId string
 
 param appServicePlanSku string = 'P1V2'
 
+param sodaUserObjectId string
+
 var abbrs = loadJsonContent('abbreviations.json')
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: '${abbrs.keyVaultVaults}${name}'
   location: defaultLocation
   properties: {
-    enableRbacAuthorization: true
+    enableRbacAuthorization: false
     sku: {
       family: 'A' 
       name: 'standard'
     }
     tenantId: tenantId
+    accessPolicies: [
+      {
+        objectId: sodaUserObjectId
+        tenantId: tenantId
+        permissions: {
+          secrets: [
+            'all'
+          ]
+          keys: [
+            'all'
+          ]
+          certificates: [
+            'all'
+          ]
+        }
+      }
+    ]
   }
+
+
 
   resource dataProtectionKey 'keys' = {
     name: 'dataprotection-key'

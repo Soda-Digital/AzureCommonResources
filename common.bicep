@@ -3,6 +3,8 @@
 param projectName string
 
 param defaultLocation string = 'australiaeast'
+
+param sodaUserObjectId string
  
 var abbrs = loadJsonContent('abbreviations.json')
 
@@ -20,6 +22,7 @@ module commonResources './common-resources.bicep' = {
     defaultLocation: commonResourceGroup.location
     tenantId: subscription().tenantId
     name: projectName
+    sodaUserObjectId: sodaUserObjectId
   }
 }
 
