@@ -48,8 +48,6 @@ resource keyVaultAccessPolicy 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-
 }
 
 
-
-
 resource acrPullRole 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' existing = {
   scope: subscription()
   name: '7f951dda-4ed3-4680-a7ca-43fe172d538d' //https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#acrpull
@@ -66,13 +64,3 @@ resource webAcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
  
-
-// resource webProdCryptoUserAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-//   name: guid(keyVault.id, webapp.id, keyVaultCryptoUser.id)
-//   scope: keyVault
-//   properties: {
-//     roleDefinitionId: keyVaultCryptoUser.id
-//     principalId: webapp.identity.principalId
-//     principalType: 'ServicePrincipal'
-//   }
-// }
