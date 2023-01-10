@@ -13,20 +13,31 @@ param logAnalyticsWorkspaceId string
 
 param projectName string
 
+param keyvaultDataProtectionkKeyUri string
+
+@secure()
+@description('The password set as the SQL Server admin')
+param sqlServerAdminPassword string
+
+param sqlServerAdminUser string
+
+@description('The name that the common resources are located in')
+param commonResourceGroupName string
+
 
 var dockerValue = 'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest'
 var resourceToken = toLower(uniqueString(subscription().id, name, location))
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
   name: '${abbrs.webServerFarms}${projectName}'
-  scope: resourceGroup('${abbrs.resourcesResourceGroups}${projectName}-common')
+  scope: resourceGroup(commonResourceGroupName)
 }
 
 
-resource dataProtectionKey 'Microsoft.KeyVault/vaults/keys@2022-07-01' existing =  {
-  name: '${abbrs.keyVaultVaults}${projectName}/dataprotection-key'
-  scope: resourceGroup('${abbrs.resourcesResourceGroups}${projectName}-common')
-}
+// resource dataProtectionKey 'Microsoft.KeyVault/vaults/keys@2022-07-01' existing =  {
+//   name: '${abbrs.keyVaultVaults}${projectName}/dataprotection-key'
+//   scope: resourceGroup(commonResourceGroupName)
+// }
 
 
 resource web 'Microsoft.Web/sites@2021-03-01' = {
@@ -54,7 +65,7 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
     name: 'appsettings'
     properties: {
       DATAPROTECTION_BLOBLOCATION: '${storageAccount.properties.primaryEndpoints.blob}/${storageAccount::dataProtectionKeysContainer.name}'
-      DATAPROTECTION_KEYVAULTLOCATION: dataProtectionKey.properties.keyUri
+      DATAPROTECTION_KEYVAULTLOCATION: keyvaultDataProtectionkKeyUri
       APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
     }
   }
@@ -116,16 +127,13 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
 
 }
 
-
-
-
 resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
   name: '${abbrs.sqlServers}${resourceToken}'
   location: location
   tags: union(tags, { 'azd-service-name': 'sqlServer' })
   properties: {
-    administratorLogin: 'sqlserver-admin'
-    administratorLoginPassword: 'Password123'
+    administratorLogin: sqlServerAdminUser
+    administratorLoginPassword: sqlServerAdminPassword
     administrators: {
       administratorType: 'ActiveDirectory'
       azureADOnlyAuthentication: false
@@ -198,7 +206,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
 
 module permissions 'common-permissions.bicep' = {
   name: 'common-permissions'
-  scope: resourceGroup('${abbrs.resourcesResourceGroups}${projectName}-common')
+  scope: resourceGroup(commonResourceGroupName)
   params: {
     resourceToken: resourceToken
     name: name

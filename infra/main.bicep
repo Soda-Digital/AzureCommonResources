@@ -13,12 +13,24 @@ param location string = 'australiaeast'
 @description('What is the name of the project')
 param projectName string
 
+@description('URI where the data protection key is located')
+param keyvaultDataProtectionkKeyUri string
 
 var tags = { 'azd-env-name': name }
 
 param logAnalyticsWorkspaceResourceId string
 param azureContributorGroupId string
 param azureContributorGroupName string
+
+@description('The name that the common resources are located in')
+param commonResourceGroupName string
+
+@secure()
+@description('The password set as the SQL Server admin')
+param sqlServerAdminPassword string
+
+@description('The user of the SQL admin')
+param sqlServerAdminUser string
 
 var abbrs = loadJsonContent('../abbreviations.json')
 
@@ -34,6 +46,8 @@ module environmentResources 'main-resources.bicep' = {
   name: 'main-resources'
   scope: resourceGroup
   params: {
+    commonResourceGroupName: commonResourceGroupName
+    keyvaultDataProtectionkKeyUri: keyvaultDataProtectionkKeyUri
     name: name
     location: resourceGroup.location
     tags: tags
@@ -41,6 +55,8 @@ module environmentResources 'main-resources.bicep' = {
     logAnalyticsWorkspaceId: logAnalyticsWorkspaceResourceId
     sqlServerOwnerGroupId: azureContributorGroupId
     sqlServerOwnerGroupName: azureContributorGroupName
+    sqlServerAdminPassword: sqlServerAdminPassword
+    sqlServerAdminUser: sqlServerAdminUser
   }
 }
 

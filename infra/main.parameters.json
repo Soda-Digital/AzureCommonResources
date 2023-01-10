@@ -16,6 +16,15 @@
     },
     "azureContributorGroupName": {
       "value": ""
+    },
+    "commonResourceGroupName" : {
+      "value": "rg-...-common"
+    },
+    "keyvaultDataProtectionkKeyUri" : {
+      "value": "https://....vault.azure.net/keys/dataprotection-key"
+    },
+    "sqlServerAdminUser" : {
+      "value": "sqlserver-admin"
     }
   }
 }
