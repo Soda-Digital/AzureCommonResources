@@ -26,8 +26,6 @@ Run the deployment:
  * Copy the log analytics workspace Id from the properties tab of the Azure Portal
  * Enter the object Id and the object name of the ClientName (Azure Contributors) for the SQL credentials.
 
-Log back into the Soda Tenant with `az login`
-
 Create new environments with `azd`
 
 `azd provision`
