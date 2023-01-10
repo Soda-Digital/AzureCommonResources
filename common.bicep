@@ -4,7 +4,8 @@ param projectName string
 
 param defaultLocation string = 'australiaeast'
 
-param sodaUserObjectId string
+@description('Provide the admin agents id')
+param sodaUserObjectId string = '4c20a97a-a661-4973-b3e1-d11abf11cb53'
  
 var abbrs = loadJsonContent('abbreviations.json')
 
@@ -21,7 +22,7 @@ module commonResources './common-resources.bicep' = {
   params: {
     defaultLocation: commonResourceGroup.location
     tenantId: subscription().tenantId
-    name: projectName
+    name: replace(projectName, '-', '')
     sodaUserObjectId: sodaUserObjectId
   }
 }
