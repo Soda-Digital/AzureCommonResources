@@ -26,7 +26,11 @@ Run the deployment:
  * Copy the log analytics workspace Id from the properties tab of the Azure Portal
  * Enter the object Id and the object name of the ClientName (Azure Contributors) for the SQL credentials.
 
-Create new environments with `azd`
+Now create the keyvault key, as we can't do this with ARM:
+
+az keyvault key create -n "dataprotection-key" --kty "RSA" --size 2048 --vault-name "kv-<project name without dashes>"
+
+Create new environments with ????
 
 `azd provision`
 
