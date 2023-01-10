@@ -23,7 +23,7 @@ Run the deployment:
 
  Once complete, in the /infra/main.parameters.json file:
  * Enter the `projectName` as the value you entered above
- * Copy the log analytics workspace Id from the properties tab of the Azure Portal
+ * Copy the log analytics workspace Id from the properties tab of the Azure Portal OR `az monitor log-analytics workspace list`
  * Enter the object Id and the object name of the ClientName (Azure Contributors) for the SQL credentials.
 
 Now create the keyvault key, as we can't do this with ARM:
