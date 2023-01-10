@@ -42,13 +42,13 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
 
 
 
-  resource dataProtectionKey 'keys' = {
-    name: 'dataprotection-key'
-    properties: {
-      keySize: 2048
-      kty: 'RSA'
-    }
-  }
+  // resource dataProtectionKey 'keys' = {
+  //   name: 'dataprotection-key'
+  //   properties: {
+  //     keySize: 2048
+  //     kty: 'RSA'
+  //   }
+  // }
 
 }
 
