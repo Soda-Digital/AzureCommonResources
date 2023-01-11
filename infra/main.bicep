@@ -59,7 +59,3 @@ module environmentResources 'main-resources.bicep' = {
     sqlServerAdminUser: sqlServerAdminUser
   }
 }
-
-
-
-

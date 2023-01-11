@@ -33,6 +33,8 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
   scope: resourceGroup(commonResourceGroupName)
 }
 
+var isProduction = endsWith(name, 'prod')
+
 
 // resource dataProtectionKey 'Microsoft.KeyVault/vaults/keys@2022-07-01' existing =  {
 //   name: '${abbrs.keyVaultVaults}${projectName}/dataprotection-key'
@@ -51,7 +53,7 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
     scmSiteAlsoStopped: true
     siteConfig: {
       linuxFxVersion: dockerValue
-      alwaysOn: true
+      alwaysOn: isProduction
       ftpsState: 'Disabled'
       http20Enabled: true
     }
@@ -75,7 +77,7 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
     properties: {
       DefaultConnection: {
         type: 'SQLAzure'
-        value: 'Server=${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlServer::database.name};Authentication=Active Directory Default'
+        value: 'Server=${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlServer::database.name};Authentication=Active Directory Default' //TODO - Wire This up
       }
 
     }
@@ -105,7 +107,7 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
     }
   }
 
-  resource warmupSlot 'slots' = {
+  resource warmupSlot 'slots' = if(isProduction) {
     name: 'warmup'
     location: location
     identity: {
@@ -158,13 +160,22 @@ resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
     name: '${abbrs.sqlServersDatabases}${resourceToken}'
     location: location
     tags: union(tags, { 'azd-service-name': 'database' })
-    sku: {
-      name: 'Basic' //TODO make this customizeable, default to serverless if non-prod
+    sku: isProduction ? {
+      name: 'Basic' 
       tier: 'Basic'
       capacity: 5
+    } : {
+      name: 'GP_S_Gen5'
+      tier: 'GeneralPurpose'
+      family: 'Gen5'
+      capacity: 1
     }
+    
     properties: {
-      collation: 'SQL_Latin1_General_CP1_CI_AS'    
+      collation: 'SQL_Latin1_General_CP1_CI_AS'
+      requestedBackupStorageRedundancy: isProduction ? 'GeoZone' : 'Local'
+      autoPauseDelay: isProduction ? -1 : 60
+
     }
   }
 }
@@ -176,7 +187,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {
   tags:tags
   kind: 'StorageV2'
   sku: {
-    name: 'Standard_GRS'
+    name: isProduction ? 'Standard_GRS' : 'Standard_LRS'
   }
 
   resource dataProtectionKeysContainer 'blobServices' = {
@@ -189,8 +200,6 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {
     }
   }
 }
-
-
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: '${abbrs.insightsComponents}${resourceToken}'
@@ -206,6 +215,9 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
 
 module permissions 'common-permissions.bicep' = {
   name: 'common-permissions'
+  dependsOn: [
+    web
+  ]
   scope: resourceGroup(commonResourceGroupName)
   params: {
     resourceToken: resourceToken
