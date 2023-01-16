@@ -25,6 +25,9 @@
     },
     "sqlServerAdminUser" : {
       "value": "sqlserver-admin"
+    },
+    "sqlServerAdminPassword" : {
+      "value": ""
     }
   }
 }

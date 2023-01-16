@@ -25,6 +25,8 @@ param azureContributorGroupName string
 @description('The name that the common resources are located in')
 param commonResourceGroupName string
 
+param dockerImage string  = 'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest'
+
 @secure()
 @description('The password set as the SQL Server admin')
 param sqlServerAdminPassword string
@@ -33,6 +35,8 @@ param sqlServerAdminPassword string
 param sqlServerAdminUser string
 
 var abbrs = loadJsonContent('../abbreviations.json')
+
+var isProduction = endsWith(name, 'prod')
 
 targetScope = 'subscription'
 
@@ -46,6 +50,8 @@ module environmentResources 'main-resources.bicep' = {
   name: 'main-resources'
   scope: resourceGroup
   params: {
+    dockerImage: dockerImage
+    isProduction: isProduction
     commonResourceGroupName: commonResourceGroupName
     keyvaultDataProtectionkKeyUri: keyvaultDataProtectionkKeyUri
     name: name

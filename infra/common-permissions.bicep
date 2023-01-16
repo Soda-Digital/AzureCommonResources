@@ -4,10 +4,8 @@ var abbrs = loadJsonContent('../abbreviations.json')
 param name string
 param projectName string
 param resourceToken string
+param isProduction bool
 
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
-  name: '${abbrs.keyVaultVaults}${projectName}'
-  }
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' existing = {
   name: '${abbrs.containerRegistryRegistries}${projectName}'
@@ -15,6 +13,12 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2022-02-01-pr
 
 resource webapp 'Microsoft.Web/sites@2022-03-01' existing = {
   name: '${abbrs.webSitesAppService}web-${resourceToken}'
+  scope: resourceGroup('${abbrs.resourcesResourceGroups}${name}')
+}
+
+
+resource webappWarmup 'Microsoft.Web/sites/slots@2022-03-01' existing = if(isProduction)  {
+  name: '${abbrs.webSitesAppService}web-${resourceToken}/warmup'
   scope: resourceGroup('${abbrs.resourcesResourceGroups}${name}')
 }
 
@@ -27,23 +31,19 @@ resource webapp 'Microsoft.Web/sites@2022-03-01' existing = {
 //   name: '12338af0-0e69-4776-bea7-57ae8d297424'
 // }
 
-resource keyVaultAccessPolicy 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-01' = {
-  name: 'add'
-  parent: keyVault
-  properties: {
-    accessPolicies: [
-      {
-        objectId: webapp.identity.principalId
-        tenantId: tenant().tenantId
-        permissions: {
-          keys: [
-            'get'
-            'wrapKey'
-            'unwrapKey'
-          ]
-        }
-      }
-    ]
+module keyvaultAccessPolicy 'appservice-keyvault.bicep' = {
+  name: 'keyVaultAccessPolicy'
+  params: {
+    projectName: projectName
+    webapp:webapp
+  }
+}
+
+module keyvaultAccessPolicyWarmup 'appservice-keyvault.bicep' = if(isProduction) {
+  name: 'keyVaultAccessPolicyWarmup'
+  params: {
+    projectName: projectName
+    webapp:webappWarmup
   }
 }
 
@@ -55,11 +55,21 @@ resource acrPullRole 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview
 
 
 resource webAcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(keyVault.id, webapp.id, acrPullRole.id)
+  name: guid(containerRegistry.id, webapp.id, acrPullRole.id)
   scope: containerRegistry
   properties: {
     roleDefinitionId: acrPullRole.id
     principalId: webapp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource webWarmupAcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = if(isProduction) {
+  name: guid(containerRegistry.id, webappWarmup.id, acrPullRole.id)
+  scope: containerRegistry
+  properties: {
+    roleDefinitionId: acrPullRole.id
+    principalId: webappWarmup.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }

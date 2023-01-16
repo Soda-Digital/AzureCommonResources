@@ -15,6 +15,8 @@ param projectName string
 
 param keyvaultDataProtectionkKeyUri string
 
+param isProduction bool
+
 @secure()
 @description('The password set as the SQL Server admin')
 param sqlServerAdminPassword string
@@ -24,8 +26,8 @@ param sqlServerAdminUser string
 @description('The name that the common resources are located in')
 param commonResourceGroupName string
 
+param dockerImage string
 
-var dockerValue = 'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest'
 var resourceToken = toLower(uniqueString(subscription().id, name, location))
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
@@ -33,13 +35,6 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
   scope: resourceGroup(commonResourceGroupName)
 }
 
-var isProduction = endsWith(name, 'prod')
-
-
-// resource dataProtectionKey 'Microsoft.KeyVault/vaults/keys@2022-07-01' existing =  {
-//   name: '${abbrs.keyVaultVaults}${projectName}/dataprotection-key'
-//   scope: resourceGroup(commonResourceGroupName)
-// }
 
 
 resource web 'Microsoft.Web/sites@2021-03-01' = {
@@ -47,12 +42,15 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
   location: location
   tags: union(tags, { 'azd-service-name': 'web' })
   kind: 'app,linux,container'
+
   properties: {
     reserved: true
+
     serverFarmId: appServicePlan.id
     scmSiteAlsoStopped: true
     siteConfig: {
-      linuxFxVersion: dockerValue
+      linuxFxVersion: dockerImage
+      acrUseManagedIdentityCreds: true
       alwaysOn: isProduction
       ftpsState: 'Disabled'
       http20Enabled: true
@@ -77,7 +75,7 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
     properties: {
       DefaultConnection: {
         type: 'SQLAzure'
-        value: 'Server=${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlServer::database.name};Authentication=Active Directory Default' //TODO - Wire This up
+        value: 'Server=${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlServer::database.name};User ID=${sqlServerAdminUser};Password=${sqlServerAdminPassword};MultipleActiveResultSets=False;Encrypt=True;'
       }
 
     }
@@ -117,7 +115,7 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
       reserved: true
       scmSiteAlsoStopped: true
       siteConfig: {
-        linuxFxVersion: dockerValue
+        linuxFxVersion: dockerImage
         acrUseManagedIdentityCreds: true
         alwaysOn: false
         ftpsState: 'Disabled'
@@ -220,6 +218,7 @@ module permissions 'common-permissions.bicep' = {
   ]
   scope: resourceGroup(commonResourceGroupName)
   params: {
+    isProduction: isProduction
     resourceToken: resourceToken
     name: name
     projectName: projectName
