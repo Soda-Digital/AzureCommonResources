@@ -13,9 +13,6 @@ param location string = 'australiaeast'
 @description('What is the name of the project')
 param projectName string
 
-@description('URI where the data protection key is located')
-param keyvaultDataProtectionkKeyUri string
-
 var tags = { 'azd-env-name': name }
 
 param logAnalyticsWorkspaceResourceId string
@@ -26,10 +23,6 @@ param azureContributorGroupName string
 param commonResourceGroupName string
 
 param dockerImage string  = 'DOCKER|mcr.microsoft.com/appsvc/staticsite:latest'
-
-@secure()
-@description('The password set as the SQL Server admin')
-param sqlServerAdminPassword string
 
 @description('The user of the SQL admin')
 param sqlServerAdminUser string
@@ -46,6 +39,11 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   tags: tags
 }
 
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  name: '${abbrs.keyVaultVaults}${projectName}'
+  scope: az.resourceGroup(commonResourceGroupName)
+}
+
 module environmentResources 'main-resources.bicep' = {
   name: 'main-resources'
   scope: resourceGroup
@@ -53,7 +51,7 @@ module environmentResources 'main-resources.bicep' = {
     dockerImage: dockerImage
     isProduction: isProduction
     commonResourceGroupName: commonResourceGroupName
-    keyvaultDataProtectionkKeyUri: keyvaultDataProtectionkKeyUri
+    keyvaultDataProtectionkKeyUri: '${keyVault.properties.vaultUri}/keys/dataprotection-key'
     name: name
     location: resourceGroup.location
     tags: tags
@@ -61,7 +59,7 @@ module environmentResources 'main-resources.bicep' = {
     logAnalyticsWorkspaceId: logAnalyticsWorkspaceResourceId
     sqlServerOwnerGroupId: azureContributorGroupId
     sqlServerOwnerGroupName: azureContributorGroupName
-    sqlServerAdminPassword: sqlServerAdminPassword
+    sqlServerAdminPassword: keyVault.getSecret('SqlServerAdminPassword')
     sqlServerAdminUser: sqlServerAdminUser
   }
 }
