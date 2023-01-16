@@ -16,13 +16,6 @@ resource webapp 'Microsoft.Web/sites@2022-03-01' existing = {
   scope: resourceGroup('${abbrs.resourcesResourceGroups}${name}')
 }
 
-
-resource webappWarmup 'Microsoft.Web/sites/slots@2022-03-01' existing = if(isProduction)  {
-  name: '${abbrs.webSitesAppService}web-${resourceToken}/warmup'
-  scope: resourceGroup('${abbrs.resourcesResourceGroups}${name}')
-}
-
-
 module keyvaultAccessPolicy 'appservice-keyvault.bicep' = {
   name: 'keyVaultAccessPolicy'
   params: {
@@ -30,7 +23,6 @@ module keyvaultAccessPolicy 'appservice-keyvault.bicep' = {
     webappIdentityId:webapp.identity.principalId
   }
 }
-
 
 
 module keyvaultAccessPolicyWarmup 'appservice-keyvault.bicep' = if(isProduction) {
