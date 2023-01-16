@@ -28,13 +28,22 @@ param commonResourceGroupName string
 
 param dockerImage string
 
+@secure()
+param VitalSource__ApiKey string
+
+@secure()
+param Stripe__SecretApiKey string
+
+@secure()
+param Sendgrid__ApiKey string
+
+
 var resourceToken = toLower(uniqueString(subscription().id, name, location))
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
   name: '${abbrs.webServerFarms}${projectName}'
   scope: resourceGroup(commonResourceGroupName)
 }
-
 
 
 resource web 'Microsoft.Web/sites@2021-03-01' = {
@@ -49,7 +58,7 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
     serverFarmId: appServicePlan.id
     scmSiteAlsoStopped: true
     siteConfig: {
-      linuxFxVersion: dockerImage
+      linuxFxVersion: 'DOCKER|${dockerImage}'
       acrUseManagedIdentityCreds: true
       alwaysOn: isProduction
       ftpsState: 'Disabled'
@@ -67,6 +76,10 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
       DATAPROTECTION_BLOBLOCATION: '${storageAccount.properties.primaryEndpoints.blob}/${storageAccount::dataProtectionKeysContainer.name}'
       DATAPROTECTION_KEYVAULTLOCATION: keyvaultDataProtectionkKeyUri
       APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
+      VitalSource__ApiKey: VitalSource__ApiKey
+      Stripe__SecretApiKey: isProduction ? Stripe__SecretApiKey : 'sk_test_8BsWxbzLee1FUvKby3GliXvT'
+      Stripe__GSTTaxRateId: isProduction ?  'txr_1MEhfTCzH3nRAVCIcpt3Wh8F' : 'txr_1MEhiWCzH3nRAVCI6WszlvkR'
+      Sendgrid__ApiKey: Sendgrid__ApiKey
     }
   }
 
@@ -171,7 +184,7 @@ resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
     
     properties: {
       collation: 'SQL_Latin1_General_CP1_CI_AS'
-      requestedBackupStorageRedundancy: isProduction ? 'GeoZone' : 'Local'
+      requestedBackupStorageRedundancy: isProduction ? 'Zone' : 'Local'
       autoPauseDelay: isProduction ? -1 : 60
 
     }
@@ -210,6 +223,9 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
+var warmupSlotId = isProduction ? web::warmupSlot.id : ''
+var warmupPrincipleId = isProduction ? web::warmupSlot.identity.principalId : ''
+
 
 module permissions 'common-permissions.bicep' = {
   name: 'common-permissions'
@@ -218,6 +234,7 @@ module permissions 'common-permissions.bicep' = {
   ]
   scope: resourceGroup(commonResourceGroupName)
   params: {
+    warmupPrincipleId: warmupPrincipleId
     isProduction: isProduction
     resourceToken: resourceToken
     name: name
@@ -240,6 +257,21 @@ resource webaccess 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   properties: {
     roleDefinitionId: blobcontributorRoleDefinition.id
     principalId: web.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+
+
+
+//even though this is behind an 'if' statement, it seems that it still tries
+//to evaluate the ids in use, which don't exist if we're not in production
+resource webaccessWarmup 'Microsoft.Authorization/roleAssignments@2022-04-01' = if(isProduction) {
+  name: guid(storageAccount.id, warmupSlotId, blobcontributorRoleDefinition.id)
+  scope: storageAccount::dataProtectionKeysContainer::dataProtectionKeys
+  properties: {
+    roleDefinitionId: blobcontributorRoleDefinition.id
+    principalId: warmupPrincipleId
     principalType: 'ServicePrincipal'
   }
 }

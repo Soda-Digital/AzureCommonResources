@@ -1,7 +1,7 @@
 var abbrs = loadJsonContent('../abbreviations.json')
 param projectName string
 
-param webapp object
+param webappIdentityId string
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: '${abbrs.keyVaultVaults}${projectName}'
@@ -13,7 +13,7 @@ resource keyVaultAccessPolicy 'Microsoft.KeyVault/vaults/accessPolicies@2022-07-
   properties: {
     accessPolicies: [
       {
-        objectId: webapp.identity.principalId
+        objectId: webappIdentityId
         tenantId: tenant().tenantId
         permissions: {
           keys: [
