@@ -76,10 +76,7 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
       DATAPROTECTION_BLOBLOCATION: '${storageAccount.properties.primaryEndpoints.blob}/${storageAccount::dataProtectionKeysContainer.name}'
       DATAPROTECTION_KEYVAULTLOCATION: keyvaultDataProtectionkKeyUri
       APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
-      VitalSource__ApiKey: VitalSource__ApiKey
-      Stripe__SecretApiKey: isProduction ? Stripe__SecretApiKey : 'sk_test_8BsWxbzLee1FUvKby3GliXvT'
-      Stripe__GSTTaxRateId: isProduction ?  'txr_1MEhfTCzH3nRAVCIcpt3Wh8F' : 'txr_1MEhiWCzH3nRAVCI6WszlvkR'
-      Sendgrid__ApiKey: Sendgrid__ApiKey
+      //Additional keys here
     }
   }
 
