@@ -45,6 +45,17 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
   scope: resourceGroup(commonResourceGroupName)
 }
 
+var appServiceSettings = {
+  DATAPROTECTION_BLOBLOCATION: '${storageAccount.properties.primaryEndpoints.blob}/${storageAccount::dataProtectionKeysContainer.name}'
+  DATAPROTECTION_KEYVAULTLOCATION: keyvaultDataProtectionkKeyUri
+  APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
+  //Additonal keys here
+}
+
+var appServiceConnectionStrings = {
+  type: 'SQLAzure'
+  value: 'Server=${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlServer::database.name};User ID=${sqlServerAdminUser};Password=${sqlServerAdminPassword};MultipleActiveResultSets=False;Encrypt=True;'
+}
 
 resource web 'Microsoft.Web/sites@2021-03-01' = {
   name: '${abbrs.webSitesAppService}web-${resourceToken}'
@@ -70,24 +81,16 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
   identity: {
     type: 'SystemAssigned'
   }
+
   resource appSettings 'config' = {
     name: 'appsettings'
-    properties: {
-      DATAPROTECTION_BLOBLOCATION: '${storageAccount.properties.primaryEndpoints.blob}/${storageAccount::dataProtectionKeysContainer.name}'
-      DATAPROTECTION_KEYVAULTLOCATION: keyvaultDataProtectionkKeyUri
-      APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
-      //Additional keys here
-    }
+    properties: appServiceSettings
   }
 
   resource databaseconnectionstrings 'config' = {
     name: 'connectionstrings'
     properties: {
-      DefaultConnection: {
-        type: 'SQLAzure'
-        value: 'Server=${sqlServer.properties.fullyQualifiedDomainName},1433;Database=${sqlServer::database.name};User ID=${sqlServerAdminUser};Password=${sqlServerAdminPassword};MultipleActiveResultSets=False;Encrypt=True;'
-      }
-
+      DefaultConnection: appServiceConnectionStrings
     }
   }
 
@@ -132,6 +135,18 @@ resource web 'Microsoft.Web/sites@2021-03-01' = {
         http20Enabled: true
       }
       clientAffinityEnabled: false
+    }
+
+    resource appSettings 'config' = {
+      name: 'appsettings'
+      properties: appServiceSettings
+    }
+  
+    resource databaseconnectionstrings 'config' = {
+      name: 'connectionstrings'
+      properties: {
+        DefaultConnection: appServiceConnectionStrings
+      }
     }
   }
 
