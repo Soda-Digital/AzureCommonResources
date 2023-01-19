@@ -28,16 +28,6 @@ param commonResourceGroupName string
 
 param dockerImage string
 
-@secure()
-param VitalSource__ApiKey string
-
-@secure()
-param Stripe__SecretApiKey string
-
-@secure()
-param Sendgrid__ApiKey string
-
-
 var resourceToken = toLower(uniqueString(subscription().id, name, location))
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
