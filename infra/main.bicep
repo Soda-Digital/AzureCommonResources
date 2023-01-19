@@ -51,7 +51,7 @@ module environmentResources 'main-resources.bicep' = {
     dockerImage: dockerImage
     isProduction: isProduction
     commonResourceGroupName: commonResourceGroupName
-    keyvaultDataProtectionkKeyUri: '${keyVault.properties.vaultUri}/keys/dataprotection-key'
+    keyvaultDataProtectionkKeyUri: '${keyVault.properties.vaultUri}keys/dataprotection-key'
     name: name
     location: resourceGroup.location
     tags: tags

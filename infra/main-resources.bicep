@@ -36,7 +36,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
 }
 
 var appServiceSettings = {
-  DATAPROTECTION_BLOBLOCATION: '${storageAccount.properties.primaryEndpoints.blob}/${storageAccount::dataProtectionKeysContainer.name}'
+  DATAPROTECTION_BLOBLOCATION: '${storageAccount.properties.primaryEndpoints.blob}${storageAccount::dataProtectionKeysContainer::dataProtectionKeys.name}'
   DATAPROTECTION_KEYVAULTLOCATION: keyvaultDataProtectionkKeyUri
   APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
   //Additonal keys here
