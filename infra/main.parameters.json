@@ -20,6 +20,9 @@
     "commonResourceGroupName" : {
       "value": "rg-...-common"
     },
+    "dockerImage" : {
+      "value": "mcr.microsoft.com/appsvc/staticsite:latest"
+    },    
     "sqlServerAdminUser" : {
       "value": "sqlserver-admin"
     }
