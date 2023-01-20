@@ -36,7 +36,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' existing =  {
 }
 
 var appServiceSettings = {
-  DATAPROTECTION_BLOBLOCATION: '${storageAccount.properties.primaryEndpoints.blob}${storageAccount::dataProtectionKeysContainer::dataProtectionKeys.name}'
+  DATAPROTECTION_BLOBLOCATION: '${storageAccount.properties.primaryEndpoints.blob}${storageAccount::blobServices::dataProtectionKeys.name}'
   DATAPROTECTION_KEYVAULTLOCATION: keyvaultDataProtectionkKeyUri
   APPLICATIONINSIGHTS_CONNECTION_STRING: applicationInsights.properties.ConnectionString
   //Additonal keys here
@@ -203,7 +203,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {
     name: isProduction ? 'Standard_GRS' : 'Standard_LRS'
   }
 
-  resource dataProtectionKeysContainer 'blobServices' = {
+  resource blobServices 'blobServices' = {
     name: 'default'
     properties: {
     }
@@ -255,7 +255,7 @@ resource blobcontributorRoleDefinition 'Microsoft.Authorization/roleDefinitions@
 
 resource webaccess 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(storageAccount.id, web.id, blobcontributorRoleDefinition.id)
-  scope: storageAccount::dataProtectionKeysContainer::dataProtectionKeys
+  scope: storageAccount::blobServices::dataProtectionKeys
   properties: {
     roleDefinitionId: blobcontributorRoleDefinition.id
     principalId: web.identity.principalId
@@ -270,7 +270,7 @@ resource webaccess 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 //to evaluate the ids in use, which don't exist if we're not in production
 resource webaccessWarmup 'Microsoft.Authorization/roleAssignments@2022-04-01' = if(isProduction) {
   name: guid(storageAccount.id, warmupSlotId, blobcontributorRoleDefinition.id)
-  scope: storageAccount::dataProtectionKeysContainer::dataProtectionKeys
+  scope: storageAccount::blobServices::dataProtectionKeys
   properties: {
     roleDefinitionId: blobcontributorRoleDefinition.id
     principalId: warmupPrincipleId
