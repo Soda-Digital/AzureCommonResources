@@ -9,6 +9,8 @@ param appServicePlanSku string = 'P1V2'
 
 param sodaUserObjectId string
 
+param addEmail bool = false
+
 var abbrs = loadJsonContent('abbreviations.json')
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
@@ -85,4 +87,19 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-03
   })
 }
 
+resource communicationServices 'Microsoft.Communication/communicationServices@2023-04-01-preview' = if(addEmail) {
+  name: 'acs-${name}'
+  location: defaultLocation
+  properties: {
+    dataLocation: 'Australia'
+  }
+}
+
+resource emailServices 'Microsoft.Communication/emailServices@2023-04-01-preview' = if(addEmail) {
+  name: 'aes-${name}'
+  location: 'global' //this must be set to global
+  properties: {
+    dataLocation: 'Australia'
+  }
+}
 
